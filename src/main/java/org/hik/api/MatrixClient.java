@@ -8,6 +8,7 @@ import org.hik.dtos.responses.MatrixDiscoveryResponse;
 import org.hik.exceptions.MatrixIOException;
 import org.hik.exceptions.MatrixNetworkException;
 import org.hik.networking.CheckResponsePayload;
+import org.hik.utils.MatrixEventType;
 import tools.jackson.core.exc.JacksonIOException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
@@ -113,12 +114,11 @@ public class MatrixClient {
      * @throws MatrixIOException      when the payload cannot be processed
      * @throws MatrixNetworkException when the response is not successful
      */
-    public CompletableFuture<String> publishMultimediaMessage(Path file, String roomId) {
+    public CompletableFuture<String> publishRoomMessage(Path file, String roomId, MatrixEventType eventType) {
         String roomMessageType = "m.room.message";
-        String eventType = "m.image";
 
         return uploadMultimedia(file).thenCompose(mxcFile -> {
-            MatrixMessagePayload matrixMessagePayload = new MatrixImageMessage(eventType, file.getFileName().toString(), mxcFile, null);
+            MatrixMessagePayload matrixMessagePayload = new MatrixImageMessage(eventType.type, file.getFileName().toString(), mxcFile, null);
             String jsonPayload = objectMapper.writeValueAsString(matrixMessagePayload);
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(this.homeserverUrl + "/_matrix/client/v3/rooms/" + roomId + "/send/" + roomMessageType + "/" + UUID.randomUUID()))
