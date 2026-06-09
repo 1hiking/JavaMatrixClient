@@ -3,12 +3,11 @@
 
 Current features:
 
-- [ ] Post raw string messages
-- [ ] Post images
-- [ ] Human readable error messages
+- [x] Post raw string messages
+- [x] Post images, files, audio content
+- [x] Human readable error messages
 
 Features not yet implemented:
 
-- [ ] Upload files, videos and other types of content
 - [ ] Have a temporal presence with /sync (can react to messages for example)
 - [ ] Be able to interact with room status and metadata

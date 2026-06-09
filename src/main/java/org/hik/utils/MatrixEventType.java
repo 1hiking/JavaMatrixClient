@@ -3,8 +3,7 @@ package org.hik.utils;
 public enum MatrixEventType {
     IMAGE("m.image"),
     FILE("m.file"),
-    VIDEO("m.audio"),
-    UNFORMATTED_TEXT("m.room.message");
+    AUDIO("m.audio");
 
     public final String type;
 

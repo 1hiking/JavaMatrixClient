@@ -22,6 +22,9 @@ import java.nio.file.Path;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
+/**
+ * A {@link MatrixClient} provides all the functionality required to interact with a Matrix compliant server.
+ */
 public class MatrixClient {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -29,13 +32,22 @@ public class MatrixClient {
     private final HttpClient client = HttpClient.newHttpClient();
     private String homeserverUrl;
 
+    /**
+     * Default constructor, which will make the initial payloads to request necessary data for further requests
+     *
+     * @param unprocessedBaseUrl The matrix url of a registered account
+     * @param username           The username assigned to a registered account
+     * @param authToken          A valid non-expired auth token
+     */
     public MatrixClient(String unprocessedBaseUrl, String username, String authToken) {
         this.credentials = new ClientCredentials(unprocessedBaseUrl, username, authToken);
         this.getWellKnown();
 
     }
 
-    // TODO for future use
+    /**
+     * Method used to obtain the .well-known data and store the base url.
+     */
     private void getWellKnown() {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(credentials.baseUrl() + "/.well-known/matrix/client"))
@@ -91,9 +103,15 @@ public class MatrixClient {
     }
 
     /**
-     * @param file   An image file to be sent to the room
-     * @param roomId The id corresponding to a room
+     *
+     * Asynchronously posts an image to a Matrix room.
+     *
+     * @param file      An image file to be sent to the room
+     * @param roomId    The id corresponding to a room
+     * @param eventType The {@link MatrixEventType} corresponding to what's being uploaded
      * @return A {@link CompletableFuture} representing a unique identifier of the event
+     * @throws MatrixIOException      when the payload cannot be processed
+     * @throws MatrixNetworkException when the response is not successful
      */
     public CompletableFuture<String> publishMultimediaMessage(Path file, String roomId) {
         String roomMessageType = "m.room.message";
