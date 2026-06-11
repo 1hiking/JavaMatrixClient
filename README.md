@@ -25,7 +25,7 @@ Now you are able to make use of all the features, the following above is an exam
 asynchronous api:
 
 ```java
-        var image = matrixClient.publishRoomMessage(Path.of("/path/to/image.jpg"), roomId, EventType.IMAGE);
+var image = matrixClient.publishRoomMessage(Path.of("/path/to/image.jpg"), roomId, EventType.IMAGE);
 var file = matrixClient.publishRoomMessage(Path.of("/path/to/file.txt"), roomId, EventType.FILE);
 var audio = matrixClient.publishRoomMessage(Path.of("/path/to/song.mp3"), roomId, EventType.AUDIO);
 
