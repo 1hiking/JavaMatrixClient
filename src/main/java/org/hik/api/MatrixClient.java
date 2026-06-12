@@ -40,7 +40,7 @@ public class MatrixClient {
     /**
      * Default constructor, which will make the initial payloads to request necessary data for further requests
      *
-     * @param unprocessedBaseUrl The matrix url of a registered account
+     * @param unprocessedBaseUrl The full qualified url of the server, e.g <a href="https://example.org">https://example.org</a>
      * @param username           The username assigned to a registered account
      * @param authToken          A valid non-expired auth token
      */
@@ -52,6 +52,8 @@ public class MatrixClient {
 
     /**
      * Method used to obtain the .well-known data and store the base url.
+     *
+     * @throws IllegalArgumentException When the homeserver url violates RFC 2396 or is null (since we concat a constant)
      */
     private void getWellKnown() {
         HttpRequest request = HttpRequest.newBuilder()
