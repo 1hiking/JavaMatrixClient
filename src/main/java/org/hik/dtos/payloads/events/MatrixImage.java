@@ -25,7 +25,7 @@ public record MatrixImage(String body,
                           URI url
 
 ) implements MatrixEvent {
-    public static final String TYPE = "m.text";
+    public static final String TYPE = "m.image";
 
     /**
      * @param body
