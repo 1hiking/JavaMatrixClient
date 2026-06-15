@@ -3,11 +3,13 @@ package org.hik.api;
 
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
-import org.hik.dtos.payloads.events.QueryParametersMessages;
+import org.hik.constants.ChronologicalDirectionEvent;
+import org.hik.dtos.payloads.QueryParametersMessages;
+import org.hik.dtos.payloads.events.MatrixEvent;
+import org.hik.dtos.payloads.events.MatrixFile;
+import org.hik.dtos.payloads.events.MatrixText;
 import org.hik.dtos.responses.MessagesResponse;
 import org.hik.exceptions.MatrixIOException;
-import org.hik.utils.ChronologicalDirectionEvent;
-import org.hik.utils.EventType;
 import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,6 +17,7 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -24,7 +27,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 
 class MatrixAPIClientTest {
-    private MatrixAPIClient matrixAPIClient;
     private static final String USER = "test";
     private static final String AUTH_TOKEN = "1234";
 
@@ -51,14 +53,14 @@ class MatrixAPIClientTest {
 
     @Test
     void getWellKnown_WithAllRequiredProperties_thenReturnCorrectSerialization() {
-        matrixAPIClient = new MatrixAPIClient(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
+        var client = MatrixAPIClient.createAsync(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
 
-        assertDoesNotThrow(() -> matrixAPIClient, "The client should not throw given a good url.");
+        assertDoesNotThrow(() -> client, "The client should not throw given a good url.");
     }
 
     @Test
     void getWellKnown_WithBadUrl_thenReturnAnException() {
-        assertThrows(IllegalArgumentException.class, () -> new MatrixAPIClient("INCORRECT.ORG", USER, AUTH_TOKEN), "The client should throw when given a bad url.");
+        assertThrows(IllegalArgumentException.class, () -> MatrixAPIClient.createAsync("INCORRECT.ORG", USER, AUTH_TOKEN), "The client should throw when given a bad url.");
     }
 
 
@@ -77,9 +79,14 @@ class MatrixAPIClientTest {
                         .withHeader("Content-Type", "application/json")
                         .withBody("{\"event_id\": \"" + expectedEventId + "\"}")));
 
-        matrixAPIClient = new MatrixAPIClient(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
+        var eventIdFuture = MatrixAPIClient.createAsync(wireMockServer.baseUrl(), USER, AUTH_TOKEN)
+                .thenCompose(client -> {
+                    MatrixEvent textEvent = new MatrixText("Hello World");
+                    return client.publishRoomMessage(roomId, textEvent);
+                });
 
-        String actualEventId = matrixAPIClient.publishRoomMessage(roomId, "Hello World").join();
+        String actualEventId = eventIdFuture.join();
+
 
         assertNotNull(actualEventId, "The returned event ID should not be null");
         assertEquals(expectedEventId, actualEventId, "The client did not return the expected event ID");
@@ -114,10 +121,15 @@ class MatrixAPIClientTest {
                         .withBody("{\"event_id\": \"" + result.expectedEventId() + "\"}")));
 
         // Initialize client pointing to local WireMock server
-        matrixAPIClient = new MatrixAPIClient(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
+
+        var eventIdFuture = MatrixAPIClient.createAsync(wireMockServer.baseUrl(), USER, AUTH_TOKEN)
+                .thenCompose(matrixAPIClient1 -> matrixAPIClient1.uploadMultimedia(result.tempFile).thenCompose(mxc -> {
+                    MatrixFile file = new MatrixFile("Test caption", result.tempFile.toString(), URI.create(mxc));
+                    return matrixAPIClient1.publishRoomMessage(result.roomId(), file);
+                }));
 
         // Act
-        String actualEventId = matrixAPIClient.publishRoomMessage(result.roomId(), result.tempFile(), EventType.FILE).join();
+        String actualEventId = eventIdFuture.join();
 
         // Assert
         assertNotNull(actualEventId, "The returned event ID should not be null");
@@ -152,14 +164,17 @@ class MatrixAPIClientTest {
                         .withHeader("Content-Type", "application/json")
                         .withBody("{ malformed json : [")));
 
-        matrixAPIClient = new MatrixAPIClient(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
+        var eventIdFuture = MatrixAPIClient.createAsync(wireMockServer.baseUrl(), USER, AUTH_TOKEN)
+                .thenCompose(matrixAPIClient1 -> matrixAPIClient1.uploadMultimedia(result.tempFile).thenCompose(mxc -> {
+                    MatrixFile file = new MatrixFile("Test caption", result.tempFile.toString(), URI.create(mxc));
+                    return matrixAPIClient1.publishRoomMessage(result.roomId(), file);
+                }));
 
-        var actualEventId = matrixAPIClient.publishRoomMessage(result.roomId(), result.tempFile(), EventType.FILE);
 
         // Capture the asynchronous CompletionException wrapper
         var discard = assertThrows(
                 java.util.concurrent.CompletionException.class,
-                actualEventId::join
+                eventIdFuture::join
         );
 
         // Use regular AssertJ on the true inner cause
@@ -177,7 +192,7 @@ class MatrixAPIClientTest {
 
 
         QueryParametersMessages mockParams = new QueryParametersMessages("some_start_token", 20, "some_end_token");
-        org.hik.utils.ChronologicalDirectionEvent direction = ChronologicalDirectionEvent.CHRONOLOGICAL_ORDER; // Adjust to your enum name if needed
+        org.hik.constants.ChronologicalDirectionEvent direction = ChronologicalDirectionEvent.CHRONOLOGICAL_ORDER; // Adjust to your enum name if needed
 
         wireMockServer.stubFor(get(urlPathEqualTo("/_matrix/client/v3/rooms/" + roomId + "/messages"))
                 .withQueryParam("dir", equalTo("f"))
@@ -202,9 +217,11 @@ class MatrixAPIClientTest {
                                 }
                                 """.formatted(expectedChunkEventId))));
 
-        matrixAPIClient = new MatrixAPIClient(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
 
-        MessagesResponse actualResponse = matrixAPIClient.getListOfMessages(roomId, direction, mockParams).join();
+        var expectedResponse = MatrixAPIClient.createAsync(wireMockServer.baseUrl(), USER, AUTH_TOKEN)
+                .thenCompose(matrixAPIClient1 -> matrixAPIClient1.getListOfMessages(roomId, direction, mockParams));
+
+        MessagesResponse actualResponse = expectedResponse.join();
 
         assertNotNull(actualResponse, "The returned MessagesResponse payload shouldn't be null");
         assertEquals("some_start_token", actualResponse.start(), "The start pagination token should match");
