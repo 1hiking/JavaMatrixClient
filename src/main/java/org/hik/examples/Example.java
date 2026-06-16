@@ -1,38 +1,32 @@
-# Matrix client library for Java
+package org.hik.examples;
 
-This is a Java client-side library to interact with the Matrix protocol.
+import org.hik.api.MatrixAPIClient;
+import org.hik.constants.ChronologicalDirectionEvent;
+import org.hik.dtos.payloads.QueryParametersMessages;
+import org.hik.dtos.payloads.events.*;
+import org.hik.networking.HttpTransport;
 
-Some of the aims of this project are:
+import java.lang.System.Logger;
+import java.net.URI;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
-- Maintain low quantity of dependencies
-- Leverage modern Java features to decrease code complexity
-- Maintain the client asynchronous
 
-Current features:
+public class Example {
 
-- Post text messages (unformatted, no rich text yet)
-- Post images, files, audio content
-- Human readable error messages
-- Basic presence with /messages payload
+    private static final Logger logger = System.getLogger(Example.class.getName());
 
-### Usage:
-
-```java
-MatrixAPIClient matrixAPIClient = new MatrixAPIClient("https://matrix.org", "example", "authTokenGoesHere");
-```
-
-Now you are able to make use of all the features, the following above is an example in which we leverage the
-asynchronous api:
-
-```java
+    static void main() {
         var roomId = "!fslCrggPzCliBLCmgo:kde.org";
         MatrixAPIClient matrixAPIClient = MatrixAPIClient.createAsync("https://kde.org", "1hik", "mat_HLDVh2GMImcPxO29hS0l8UXUYDRUFB_0PTNNP").join();
-
+        HttpTransport r = new HttpTransport();
 
         MatrixEvent textEvent = new MatrixText("Test");
 
         var id = matrixAPIClient.publishRoomMessage(roomId, textEvent).join();
-
+        logger.log(Logger.Level.INFO, id);
         Path image = Path.of("/home/user/Storage/Imágenes/FROM LAPTOP/Wallpapers/ciym5tjtnke51.jpg");
         var event = matrixAPIClient.uploadResource(image).thenCompose(mxc -> {
                     MatrixEvent imageEvent = new MatrixImage("Image caption", image.getFileName().toString(), URI.create(mxc));
@@ -61,6 +55,12 @@ asynchronous api:
                     list.add(event3.join());
                     return list;
                 });
+        logger.log(Logger.Level.INFO, String.valueOf(posts.join()));
 
         var messages = matrixAPIClient.getListOfMessages(roomId, ChronologicalDirectionEvent.REVERSE_CHRONOLOGICAL_ORDER, QueryParametersMessages.defaultParams()).join();
-```
+
+
+        logger.log(Logger.Level.INFO, messages.toString());
+
+    }
+}

@@ -123,7 +123,7 @@ class MatrixAPIClientTest {
         // Initialize client pointing to local WireMock server
 
         var eventIdFuture = MatrixAPIClient.createAsync(wireMockServer.baseUrl(), USER, AUTH_TOKEN)
-                .thenCompose(matrixAPIClient1 -> matrixAPIClient1.uploadMultimedia(result.tempFile).thenCompose(mxc -> {
+                .thenCompose(matrixAPIClient1 -> matrixAPIClient1.uploadResource(result.tempFile).thenCompose(mxc -> {
                     MatrixFile file = new MatrixFile("Test caption", result.tempFile.toString(), URI.create(mxc));
                     return matrixAPIClient1.publishRoomMessage(result.roomId(), file);
                 }));
@@ -165,7 +165,7 @@ class MatrixAPIClientTest {
                         .withBody("{ malformed json : [")));
 
         var eventIdFuture = MatrixAPIClient.createAsync(wireMockServer.baseUrl(), USER, AUTH_TOKEN)
-                .thenCompose(matrixAPIClient1 -> matrixAPIClient1.uploadMultimedia(result.tempFile).thenCompose(mxc -> {
+                .thenCompose(matrixAPIClient1 -> matrixAPIClient1.uploadResource(result.tempFile).thenCompose(mxc -> {
                     MatrixFile file = new MatrixFile("Test caption", result.tempFile.toString(), URI.create(mxc));
                     return matrixAPIClient1.publishRoomMessage(result.roomId(), file);
                 }));
