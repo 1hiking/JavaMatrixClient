@@ -1,4 +1,4 @@
-package org.hik.dtos.responses;
+package org.hik.responses;
 
 
 import java.util.List;

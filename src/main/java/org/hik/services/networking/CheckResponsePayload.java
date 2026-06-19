@@ -1,7 +1,7 @@
-package org.hik.networking;
+package org.hik.services.networking;
 
-import org.hik.dtos.responses.ErrorResponse;
 import org.hik.exceptions.MatrixNetworkException;
+import org.hik.responses.ErrorResponse;
 import tools.jackson.databind.ObjectMapper;
 
 import java.net.http.HttpResponse;

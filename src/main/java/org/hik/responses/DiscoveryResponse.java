@@ -1,4 +1,4 @@
-package org.hik.dtos.responses;
+package org.hik.responses;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;

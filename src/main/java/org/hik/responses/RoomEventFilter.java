@@ -1,4 +1,4 @@
-package org.hik.dtos.responses;
+package org.hik.responses;
 
 public record RoomEventFilter() {
 }

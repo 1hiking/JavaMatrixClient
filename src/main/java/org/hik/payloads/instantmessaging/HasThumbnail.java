@@ -1,4 +1,4 @@
-package org.hik.dtos.payloads.events;
+package org.hik.payloads.instantmessaging;
 
 /**
  * Marks event content that includes thumbnail metadata such as E2E metadata

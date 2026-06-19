@@ -1,4 +1,4 @@
-package org.hik.dtos.payloads.events;
+package org.hik.payloads.instantmessaging;
 
 /**
  * Marks event content that includes file metadata such as a MIME type

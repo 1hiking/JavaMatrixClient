@@ -1,4 +1,8 @@
-package org.hik.networking;
+package org.hik.services.networking;
+
+import org.hik.exceptions.MatrixNetworkException;
+import org.hik.responses.ErrorResponse;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.net.URI;
@@ -36,10 +40,14 @@ public class HttpTransport {
 
     public CompletableFuture<String> postJson(URI path, String body, String authToken) {
         var builderRequest = HttpRequest.newBuilder()
-                .uri(path)
-                .header("Content-Type", "application/json");
+                .uri(path);
+
+        if (body != null) {
+            builderRequest.header("Content-Type", "application/json");
+        }
 
         builderRequest.POST(body != null ? HttpRequest.BodyPublishers.ofString(body) : HttpRequest.BodyPublishers.noBody());
+
         if (authToken != null) {
             builderRequest.header("Authorization", "Bearer " + authToken);
         }
@@ -47,8 +55,19 @@ public class HttpTransport {
 
 
         return client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                .thenApply(response -> {
+                    validateHeaders(response.statusCode(), response.body());
+                    return response;
+                })
                 .thenApply(HttpResponse::body);
 
+    }
+
+    private void validateHeaders(int code, String body) {
+        if (code != 200) {
+            ErrorResponse errorResponse = new ObjectMapper().readValue(body, ErrorResponse.class);
+            throw new MatrixNetworkException("Error processing exception: " + errorResponse.error() + ", with code: " + errorResponse.errCode());
+        }
     }
 
     public CompletableFuture<String> putJson(URI path, String body, String authToken) {

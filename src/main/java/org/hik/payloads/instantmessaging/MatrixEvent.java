@@ -1,4 +1,4 @@
-package org.hik.dtos.payloads.events;
+package org.hik.payloads.instantmessaging;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonSubTypes;

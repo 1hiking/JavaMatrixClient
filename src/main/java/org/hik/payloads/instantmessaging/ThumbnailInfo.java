@@ -1,4 +1,4 @@
-package org.hik.dtos.payloads.events;
+package org.hik.payloads.instantmessaging;
 
 public record ThumbnailInfo(Integer h,
                             String mimetype,

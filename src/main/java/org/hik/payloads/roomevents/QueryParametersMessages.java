@@ -1,4 +1,4 @@
-package org.hik.dtos.payloads;
+package org.hik.payloads.roomevents;
 
 /**
  * @param from  The token to start returning events from. This token can be obtained from a prev_batch or next_batch token returned by the /sync endpoint, or from an end token returned by a previous request to this endpoint.

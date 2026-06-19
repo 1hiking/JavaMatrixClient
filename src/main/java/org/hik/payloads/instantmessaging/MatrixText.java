@@ -1,4 +1,4 @@
-package org.hik.dtos.payloads.events;
+package org.hik.payloads.instantmessaging;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -19,11 +19,5 @@ public record MatrixText(
 
     public static final String TYPE = "m.text";
 
-    public MatrixText(String body, String format, String formattedBody) {
-        this(TYPE, body, format, formattedBody);
-    }
 
-    public MatrixText(String body) {
-        this(TYPE, body, null, null);
-    }
 }
