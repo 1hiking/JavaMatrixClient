@@ -19,7 +19,6 @@ import java.net.URI;
  * @param formattedBody the formatted version of {@code body}, when it acts as a caption.
  *                      Required if {@code format} is specified.
  * @param info          metadata for the audio clip referred to by {@code url}.
- * @param msgtype       always {@value #TYPE}.
  * @param url           required if the file is unencrypted.
  */
 public record MatrixVideo(String body,
@@ -28,11 +27,14 @@ public record MatrixVideo(String body,
                           String format,
                           @JsonProperty("formatted_body") String formattedBody,
                           VideoInfo info,
-                          String msgtype,
                           URI url
 ) implements MatrixEvent {
 
-    public static final String TYPE = "m.video";
+
+    @Override
+    public String msgtype() {
+        return "m.video";
+    }
 
 
     record VideoInfo(Integer duration,

@@ -81,7 +81,7 @@ class MatrixAPIClientTest {
 
         var eventIdFuture = MatrixAPIClient.createAsync(wireMockServer.baseUrl(), USER, AUTH_TOKEN)
                 .thenCompose(client -> {
-                    MatrixEvent textEvent = new MatrixText("Hello World");
+                    MatrixEvent textEvent = new MatrixText("Hello World", null, null);
                     return client.publishRoomMessage(roomId, textEvent);
                 });
 
@@ -95,7 +95,6 @@ class MatrixAPIClientTest {
 
     @Test
     void sendPublishRoomMessageFile_WithACorrectPayload_thenReturnAString(@TempDir Path tempDir) throws IOException {
-        // Arrange
         Result result = getResult(tempDir);
 
         // Mock the MXC Request (v1 create endpoint)
@@ -120,18 +119,15 @@ class MatrixAPIClientTest {
                         .withHeader("Content-Type", "application/json")
                         .withBody("{\"event_id\": \"" + result.expectedEventId() + "\"}")));
 
-        // Initialize client pointing to local WireMock server
 
         var eventIdFuture = MatrixAPIClient.createAsync(wireMockServer.baseUrl(), USER, AUTH_TOKEN)
                 .thenCompose(matrixAPIClient1 -> matrixAPIClient1.uploadResource(result.tempFile).thenCompose(mxc -> {
-                    MatrixFile file = new MatrixFile("Test caption", result.tempFile.toString(), URI.create(mxc));
+                    MatrixFile file = new MatrixFile("Test caption", null, result.tempFile.toString(), null, null, null, URI.create(mxc));
                     return matrixAPIClient1.publishRoomMessage(result.roomId(), file);
                 }));
 
-        // Act
         String actualEventId = eventIdFuture.join();
 
-        // Assert
         assertNotNull(actualEventId, "The returned event ID should not be null");
         assertEquals(result.expectedEventId(), actualEventId, "The client did not return the expected event ID");
     }
@@ -166,7 +162,7 @@ class MatrixAPIClientTest {
 
         var eventIdFuture = MatrixAPIClient.createAsync(wireMockServer.baseUrl(), USER, AUTH_TOKEN)
                 .thenCompose(matrixAPIClient1 -> matrixAPIClient1.uploadResource(result.tempFile).thenCompose(mxc -> {
-                    MatrixFile file = new MatrixFile("Test caption", result.tempFile.toString(), URI.create(mxc));
+                    MatrixFile file = new MatrixFile("Test caption", null, result.tempFile.toString(), null, null, null, URI.create(mxc));
                     return matrixAPIClient1.publishRoomMessage(result.roomId(), file);
                 }));
 

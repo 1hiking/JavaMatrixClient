@@ -1,7 +1,6 @@
 package org.hik.payloads.instantmessaging;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 /**
@@ -13,14 +12,6 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
         property = "msgtype",
         visible = true
 )
-@JsonSubTypes({
-        @JsonSubTypes.Type(value = MatrixText.class, name = MatrixText.TYPE),
-        @JsonSubTypes.Type(value = MatrixImage.class, name = MatrixImage.TYPE),
-        @JsonSubTypes.Type(value = MatrixFile.class, name = MatrixFile.TYPE),
-        @JsonSubTypes.Type(value = MatrixAudio.class, name = MatrixAudio.TYPE),
-        @JsonSubTypes.Type(value = MatrixVideo.class, name = MatrixVideo.TYPE),
-        @JsonSubTypes.Type(value = MatrixLocation.class, name = MatrixLocation.TYPE),
-})
 @JsonInclude(JsonInclude.Include.NON_ABSENT)
 public sealed interface MatrixEvent
         permits MatrixAudio, MatrixFile, MatrixLocation, MatrixImage, MatrixText, MatrixVideo {
