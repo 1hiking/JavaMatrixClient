@@ -26,19 +26,18 @@ asynchronous api:
 
 ```java
         var roomId = "!fslCrggPzCliBLCmgo:kde.org";
-        MatrixAPIClient matrixAPIClient = MatrixAPIClient.createAsync("https://kde.org", "1hik", "mat_HLDVh2GMImcPxO29hS0l8UXUYDRUFB_0PTNNP").join();
+        MatrixAPIClient matrixAPIClient = MatrixAPIClient.createAsync("https://example.org", "YOURUSERNAME", "YOURTOKEN").join();
 
 
         MatrixEvent textEvent = new MatrixText("Test");
+        
 
-        var id = matrixAPIClient.publishRoomMessage(roomId, textEvent).join();
-
-        Path image = Path.of("/home/user/Storage/Imágenes/FROM LAPTOP/Wallpapers/ciym5tjtnke51.jpg");
-        var event = matrixAPIClient.uploadResource(image).thenCompose(mxc -> {
-                    MatrixEvent imageEvent = new MatrixImage("Image caption", image.getFileName().toString(), URI.create(mxc));
-                    return matrixAPIClient.publishRoomMessage(roomId, imageEvent);
-                }
-        );
+        Path image = Path.of("/path/to/file.txt");
+        var eventIdFuture = MatrixAPIClient.createAsync(wireMockServer.baseUrl(), USER, AUTH_TOKEN)
+        .thenCompose(matrixAPIClient1 -> matrixAPIClient1.uploadResource(result.tempFile).thenCompose(mxc -> {
+            MatrixFile file = new MatrixFile("Test caption", null, result.tempFile.toString(), null, null, null, URI.create(mxc));
+            return matrixAPIClient1.publishRoomMessage(result.roomId(), file);
+        }));
 
         Path file = Path.of("/home/user/Descargas/ankercore.txt");
         var event2 = matrixAPIClient.uploadResource(file).thenCompose(mxc -> {
@@ -46,17 +45,11 @@ asynchronous api:
             return matrixAPIClient.publishRoomMessage(roomId, fileEvent);
 
         });
-
-        Path audio = Path.of("/home/user/Descargas/jokesong.mp3");
-        var event3 = matrixAPIClient.uploadResource(audio).thenCompose(mxc -> {
-            MatrixEvent fileEvent = new MatrixAudio("Audio caption", audio.getFileName().toString(), URI.create(mxc));
-            return matrixAPIClient.publishRoomMessage(roomId, fileEvent);
-        });
+        
 
         CompletableFuture<List<String>> posts = CompletableFuture.allOf(event, event2, event3)
                 .thenApply(v -> {
                     List<String> list = new ArrayList<>();
-                    list.add(event.join());
                     list.add(event2.join());
                     list.add(event3.join());
                     return list;
