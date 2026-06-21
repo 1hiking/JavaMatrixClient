@@ -37,14 +37,27 @@ public record MatrixVideo(String body,
     }
 
 
-    record VideoInfo(Integer duration,
-                     Integer h,
-                     String mimetype,
-                     Integer size,
-                     @JsonProperty("thumbnail_file") EncryptedFile thumbnailFile,
-                     @JsonProperty("thumbnail_info") ThumbnailInfo thumbnailInfo,
-                     @JsonProperty("thumbnail_url") String thumbnailUrl,
-                     Integer w
+    /**
+     *
+     * Additional file information referred in the {@link MatrixAudio} {@code url} field.
+     *
+     * @param h             the height of the video in pixels.
+     * @param w             The width of the video in pixels.
+     * @param mimetype      the mimetype of the image.
+     * @param size          the size of the image in bytes.
+     * @param thumbnailFile information on the encrypted thumbnail file. Currently not supported.
+     * @param thumbnailInfo metadata about the image referred to in {@code thumbnailUrl}.
+     * @param thumbnailUrl  the URL to the thumbnail of the file. Only present if the thumbnail is unencrypted.
+     * @param duration      the duration of the video in milliseconds.
+     */
+    public record VideoInfo(Integer duration,
+                            Integer h,
+                            String mimetype,
+                            Integer size,
+                            @JsonProperty("thumbnail_file") EncryptedFile thumbnailFile,
+                            @JsonProperty("thumbnail_info") ThumbnailInfo thumbnailInfo,
+                            @JsonProperty("thumbnail_url") String thumbnailUrl,
+                            Integer w
     ) implements HasThumbnail, HasInfo {
     }
 }

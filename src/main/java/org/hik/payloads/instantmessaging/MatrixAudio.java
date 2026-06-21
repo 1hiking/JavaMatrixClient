@@ -39,6 +39,8 @@ public record MatrixAudio(String body,
      * Metadata describing an audio clip.
      *
      * @param duration the duration of the audio in milliseconds.
+     * @param mimetype the mimetype of the audio.
+     * @param size the size of the audio in bytes.
      */
     public record AudioInfo(Integer duration,
                             String mimetype,

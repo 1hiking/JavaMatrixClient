@@ -23,7 +23,15 @@ public record MatrixLocation(String body,
     }
 
 
-    record LocationInfo(EncryptedFile thumbnailFile,
+    /**
+     *
+     * Additional information of the location data
+     *
+     * @param thumbnailFile information on the encrypted thumbnail file. Currently not supported.
+     * @param thumbnailInfo metadata about the image referred to in {@code thumbnailUrl}.
+     * @param thumbnailUrl  the URL to the thumbnail of the file. Only present if the thumbnail is unencrypted.
+     */
+    public record LocationInfo(EncryptedFile thumbnailFile,
                         ThumbnailInfo thumbnailInfo,
                         String thumbnailUrl
     ) implements HasThumbnail {

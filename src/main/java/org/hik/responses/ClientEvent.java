@@ -34,7 +34,7 @@ public record ClientEvent(Map<String, Object> content,
      * @param membership      The room membership of the user making the request, at the time of the event. More information in the official documents
      * @param redactedBecause The event that redacted this event, if any.
      * @param transactionId   The client-supplied transaction ID, for example, provided via PUT /_matrix/client/v3/rooms/{roomId}/send/{eventType}/{txnId}, if the client being given the event is the same one which sent it.
-     * @apiNote the object that is part of prev_content is not yet implement here
+     * @apiNote  the object that is part of prev_content is not yet implement here
      */
     public record UnsignedData(Long age,
                                String membership,

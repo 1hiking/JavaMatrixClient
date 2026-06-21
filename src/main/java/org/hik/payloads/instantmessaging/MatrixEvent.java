@@ -16,12 +16,12 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 public sealed interface MatrixEvent
         permits MatrixAudio, MatrixFile, MatrixLocation, MatrixImage, MatrixText, MatrixVideo {
     /**
-     * @return The event type represented with a "m." prefix
+     * @return the event type represented with a "m." prefix.
      */
     String msgtype();
 
     /**
-     * @return Depending on the event it can either be an url mxc:// or a text to show.
+     * @return depending on the event it can either be an url mxc:// or a text to show.
      */
     String body();
 

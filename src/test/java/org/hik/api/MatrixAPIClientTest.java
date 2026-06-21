@@ -22,7 +22,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 
@@ -52,21 +51,21 @@ class MatrixAPIClientTest {
     // Initialization tests
 
     @Test
-    void getWellKnown_WithAllRequiredProperties_thenReturnCorrectSerialization() {
-        var client = MatrixAPIClient.createAsync(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
+    void getWellKnown_WithAllRequiredProperties_thenReturnCorrectSerialization() throws InterruptedException {
+        var client = MatrixAPIClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
 
         assertDoesNotThrow(() -> client, "The client should not throw given a good url.");
     }
 
     @Test
     void getWellKnown_WithBadUrl_thenReturnAnException() {
-        assertThrows(IllegalArgumentException.class, () -> MatrixAPIClient.createAsync("INCORRECT.ORG", USER, AUTH_TOKEN), "The client should throw when given a bad url.");
+        assertThrows(IllegalArgumentException.class, () -> MatrixAPIClient.create("INCORRECT.ORG", USER, AUTH_TOKEN), "The client should throw when given a bad url.");
     }
 
 
     // Publishing messages
     @Test
-    void sendPublishRoomMessage_WithACorrectPayload_thenReturnAString() {
+    void sendPublishRoomMessage_WithACorrectPayload_thenReturnAString() throws InterruptedException {
         String roomId = "1234";
         String roomMessageType = "m.room.message";
         String expectedEventId = "$h29asdf8q348hju9a:matrix.org";
@@ -79,13 +78,10 @@ class MatrixAPIClientTest {
                         .withHeader("Content-Type", "application/json")
                         .withBody("{\"event_id\": \"" + expectedEventId + "\"}")));
 
-        var eventIdFuture = MatrixAPIClient.createAsync(wireMockServer.baseUrl(), USER, AUTH_TOKEN)
-                .thenCompose(client -> {
-                    MatrixEvent textEvent = new MatrixText("Hello World", null, null);
-                    return client.publishRoomMessage(roomId, textEvent);
-                });
+        var client = MatrixAPIClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
 
-        String actualEventId = eventIdFuture.join();
+        MatrixEvent textEvent = new MatrixText("Hello World", null, null);
+        var actualEventId = client.publishRoomMessage(roomId, textEvent);
 
 
         assertNotNull(actualEventId, "The returned event ID should not be null");
@@ -94,7 +90,7 @@ class MatrixAPIClientTest {
 
 
     @Test
-    void sendPublishRoomMessageFile_WithACorrectPayload_thenReturnAString(@TempDir Path tempDir) throws IOException {
+    void sendPublishRoomMessageFile_WithACorrectPayload_thenReturnAString(@TempDir Path tempDir) throws IOException, InterruptedException {
         Result result = getResult(tempDir);
 
         // Mock the MXC Request (v1 create endpoint)
@@ -112,7 +108,7 @@ class MatrixAPIClientTest {
 
         // Mock the Message Publication (v3 client send timeline endpoint)
         wireMockServer.stubFor(put(urlPathMatching("/_matrix/client/v3/rooms/" + result.roomId() + "/send/" + result.roomMessageType() + "/[^/]+"))
-                .withRequestBody(containing(result.mockMxcUri()))
+                .withRequestBody(containing(String.valueOf(result.mockMxcUri)))
                 .withRequestBody(containing("file.txt"))
                 .willReturn(aResponse()
                         .withStatus(200)
@@ -120,13 +116,11 @@ class MatrixAPIClientTest {
                         .withBody("{\"event_id\": \"" + result.expectedEventId() + "\"}")));
 
 
-        var eventIdFuture = MatrixAPIClient.createAsync(wireMockServer.baseUrl(), USER, AUTH_TOKEN)
-                .thenCompose(matrixAPIClient1 -> matrixAPIClient1.uploadResource(result.tempFile).thenCompose(mxc -> {
-                    MatrixFile file = new MatrixFile("Test caption", null, result.tempFile.toString(), null, null, null, URI.create(mxc));
-                    return matrixAPIClient1.publishRoomMessage(result.roomId(), file);
-                }));
+        var client = MatrixAPIClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
+        var mxc = client.uploadResource(result.tempFile);
 
-        String actualEventId = eventIdFuture.join();
+        MatrixFile file = new MatrixFile("Test caption", null, result.tempFile.toString(), null, null, null, URI.create(mxc));
+        var actualEventId = client.publishRoomMessage(result.roomId(), file);
 
         assertNotNull(actualEventId, "The returned event ID should not be null");
         assertEquals(result.expectedEventId(), actualEventId, "The client did not return the expected event ID");
@@ -139,7 +133,7 @@ class MatrixAPIClientTest {
 
         String serverName = "matrix.org";
         String mediaId = "fakeMediaId123";
-        String mockMxcUri = "mxc://" + serverName + "/" + mediaId;
+        URI mockMxcUri = URI.create("mxc://" + serverName + "/" + mediaId);
 
         Path tempFile = tempDir.resolve("file.txt");
         Files.writeString(tempFile, "Test");
@@ -147,11 +141,11 @@ class MatrixAPIClientTest {
     }
 
     private record Result(String roomId, String roomMessageType, String expectedEventId, String serverName,
-                          String mediaId, String mockMxcUri, Path tempFile) {
+                          String mediaId, URI mockMxcUri, Path tempFile) {
     }
 
     @Test
-    void sendPublishRoomMessageFile_WithACorrectPayload_thenReturnAnException(@TempDir Path tempDir) throws IOException {
+    void sendPublishRoomMessageFile_WithACorrectPayload_thenReturnAnException(@TempDir Path tempDir) throws IOException, InterruptedException {
         Result result = getResult(tempDir);
 
         wireMockServer.stubFor(post(urlEqualTo("/_matrix/media/v1/create"))
@@ -160,29 +154,16 @@ class MatrixAPIClientTest {
                         .withHeader("Content-Type", "application/json")
                         .withBody("{ malformed json : [")));
 
-        var eventIdFuture = MatrixAPIClient.createAsync(wireMockServer.baseUrl(), USER, AUTH_TOKEN)
-                .thenCompose(matrixAPIClient1 -> matrixAPIClient1.uploadResource(result.tempFile).thenCompose(mxc -> {
-                    MatrixFile file = new MatrixFile("Test caption", null, result.tempFile.toString(), null, null, null, URI.create(mxc));
-                    return matrixAPIClient1.publishRoomMessage(result.roomId(), file);
-                }));
+        var client = MatrixAPIClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
 
 
-        // Capture the asynchronous CompletionException wrapper
-        var discard = assertThrows(
-                java.util.concurrent.CompletionException.class,
-                eventIdFuture::join
-        );
-
-        // Use regular AssertJ on the true inner cause
-        assertThat(discard.getCause())
-                .isInstanceOf(MatrixIOException.class)
-                .hasMessageContaining("Failed to parse Matrix response JSON");
+        assertThrows(MatrixIOException.class, () -> client.uploadResource(result.tempFile));
     }
 
     // Pagination & Timeline History Tests
 
     @Test
-    void getListOfMessages_WithValidQueryParameters_thenReturnMessagesResponse() {
+    void getListOfMessages_WithValidQueryParameters_thenReturnMessagesResponse() throws InterruptedException {
         String roomId = "!exampleRoomId:matrix.org";
         String expectedChunkEventId = "$abcdefg12345:matrix.org";
 
@@ -214,10 +195,10 @@ class MatrixAPIClientTest {
                                 """.formatted(expectedChunkEventId))));
 
 
-        var expectedResponse = MatrixAPIClient.createAsync(wireMockServer.baseUrl(), USER, AUTH_TOKEN)
-                .thenCompose(matrixAPIClient1 -> matrixAPIClient1.getListOfMessages(roomId, direction, mockParams));
+        var client = MatrixAPIClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
 
-        MessagesResponse actualResponse = expectedResponse.join();
+        MessagesResponse actualResponse = client.getListOfMessages(roomId, direction, mockParams);
+
 
         assertNotNull(actualResponse, "The returned MessagesResponse payload shouldn't be null");
         assertEquals("some_start_token", actualResponse.start(), "The start pagination token should match");
@@ -228,4 +209,5 @@ class MatrixAPIClientTest {
         var firstEventId = actualResponse.chunk().getFirst().eventId();
         assertEquals(expectedChunkEventId, firstEventId, "The mapped chunk payload did not match the expected event structure");
     }
+
 }
