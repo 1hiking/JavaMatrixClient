@@ -7,7 +7,7 @@ import org.hik.exceptions.MatrixIOException;
 import org.hik.payloads.roomevents.MatrixEvent;
 import org.hik.payloads.roomevents.MatrixFile;
 import org.hik.payloads.roomevents.MatrixText;
-import org.hik.payloads.roomstate.ChronologicalDirectionEvent;
+import org.hik.payloads.roomstate.ChronologicalDirectionType;
 import org.hik.payloads.roomstate.QueryParametersMessages;
 import org.hik.responses.MessagesResponse;
 import org.jspecify.annotations.NonNull;
@@ -81,7 +81,7 @@ class MatrixAPIClientTest {
         var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
 
         MatrixEvent textEvent = new MatrixText("Hello World", null, null);
-        var actualEventId = client.publishRoomMessage(roomId, textEvent);
+        var actualEventId = client.events().publishRoomMessage(roomId, textEvent);
 
 
         assertNotNull(actualEventId, "The returned event ID should not be null");
@@ -117,10 +117,10 @@ class MatrixAPIClientTest {
 
 
         var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
-        var mxc = client.uploadResource(result.tempFile);
+        var mxc = client.events().uploadResource(result.tempFile);
 
         MatrixFile file = new MatrixFile("Test caption", null, result.tempFile.toString(), null, null, null, URI.create(mxc));
-        var actualEventId = client.publishRoomMessage(result.roomId(), file);
+        var actualEventId = client.events().publishRoomMessage(result.roomId(), file);
 
         assertNotNull(actualEventId, "The returned event ID should not be null");
         assertEquals(result.expectedEventId(), actualEventId, "The client did not return the expected event ID");
@@ -157,7 +157,7 @@ class MatrixAPIClientTest {
         var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
 
 
-        assertThrows(MatrixIOException.class, () -> client.uploadResource(result.tempFile));
+        assertThrows(MatrixIOException.class, () -> client.events().uploadResource(result.tempFile));
     }
 
     // Pagination & Timeline History Tests
@@ -169,7 +169,7 @@ class MatrixAPIClientTest {
 
 
         QueryParametersMessages mockParams = new QueryParametersMessages("some_start_token", 20, "some_end_token");
-        ChronologicalDirectionEvent direction = ChronologicalDirectionEvent.CHRONOLOGICAL_ORDER; // Adjust to your enum name if needed
+        ChronologicalDirectionType direction = ChronologicalDirectionType.CHRONOLOGICAL_ORDER; // Adjust to your enum name if needed
 
         wireMockServer.stubFor(get(urlPathEqualTo("/_matrix/client/v3/rooms/" + roomId + "/messages"))
                 .withQueryParam("dir", equalTo("f"))
@@ -197,7 +197,7 @@ class MatrixAPIClientTest {
 
         var client = MatrixClient.create(wireMockServer.baseUrl(), USER, AUTH_TOKEN);
 
-        MessagesResponse actualResponse = client.getListOfMessages(roomId, direction, mockParams);
+        MessagesResponse actualResponse = client.room().getListOfMessages(roomId, direction, mockParams);
 
 
         assertNotNull(actualResponse, "The returned MessagesResponse payload shouldn't be null");

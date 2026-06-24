@@ -38,7 +38,7 @@ public class HttpTransport {
     /// @throws IOException              if an I/O error has occurred while sending the request
     /// @throws InterruptedException     if the operation has been interrupted
     /// @throws IllegalArgumentException if the path was not supplied
-    public String getJson(URI path, String authToken) throws IOException, InterruptedException {
+    public String getEvent(URI path, String authToken) throws IOException, InterruptedException {
         var builderRequest = HttpRequest.newBuilder()
                 .uri(path)
                 .header(CONTENT_TYPE, APPLICATION_JSON)
@@ -66,7 +66,7 @@ public class HttpTransport {
     /// @throws IOException              if an I/O error has occurred while sending the request
     /// @throws InterruptedException     if the operation has been interrupted
     /// @throws IllegalArgumentException if the path was not supplied
-    public String postJson(URI path, String body, String authToken) throws IOException, InterruptedException {
+    public String postEvent(URI path, String body, String authToken) throws IOException, InterruptedException {
         var builderRequest = HttpRequest.newBuilder()
                 .uri(path);
 
@@ -98,7 +98,7 @@ public class HttpTransport {
     /// @throws IOException              if an I/O error has occurred while sending the request
     /// @throws InterruptedException     if the operation has been interrupted
     /// @throws IllegalArgumentException if the path was not supplied
-    public String putJson(URI path, String body, String authToken) throws IOException, InterruptedException {
+    public String putEvent(URI path, String body, String authToken) throws IOException, InterruptedException {
 
 
         var builderRequest = HttpRequest.newBuilder()
@@ -124,7 +124,7 @@ public class HttpTransport {
     /// @throws IOException              if an I/O error has occurred while sending the request
     /// @throws InterruptedException     if the operation has been interrupted
     /// @throws IllegalArgumentException if the path was not supplied
-    public String putFile(URI path, Path resource, String authToken) throws IOException, InterruptedException {
+    public String putResource(URI path, Path resource, String authToken) throws IOException, InterruptedException {
         var uploadRequest = HttpRequest.newBuilder()
                 .uri(path)
                 .header(AUTHORIZATION, BEARER + authToken)
