@@ -12,9 +12,16 @@ module JavaMatrixClient {
     // Required for MediaProcessor, might be deleted
     requires java.desktop;
 
+    // Init
     exports org.hik.api;
+    exports org.hik.context;
+
+    // Records and Interfaces
     exports org.hik.payloads.roomstate;
     exports org.hik.payloads.roomevents;
     exports org.hik.responses;
+
+    // Common exceptions
     exports org.hik.exceptions;
+
 }
