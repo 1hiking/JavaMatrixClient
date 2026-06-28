@@ -16,7 +16,6 @@ module JavaMatrixClient {
     // Records and Interfaces
     exports org.hik.payloads.roomstate;
     exports org.hik.payloads.roomevents;
-    exports org.hik.responses;
 
     // Common exceptions
     exports org.hik.exceptions;
